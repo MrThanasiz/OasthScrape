@@ -8,7 +8,12 @@ import sys
 
 
 #getData('1181')
-getData('1192')
-getData('1372')
+#print("okk")
+#getData('1192')
+#getData('1372')
 #getData('1470')
 
+print("Faliro")
+getData("1363")
+getData("1182")
+print("that's all")

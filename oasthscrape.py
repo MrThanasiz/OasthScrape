@@ -2,36 +2,38 @@ import sys
 
 
 def getData(stopid):
-    from PyQt4.QtGui import QApplication
-    from PyQt4.QtCore import QUrl
-    from PyQt4.QtWebKit import QWebPage
+
     import bs4 as bs
-    import urllib.request
-    class Client(QWebPage):
-        def __init__(self,url):
-            self.app=QApplication(sys.argv)
-            QWebPage.__init__(self)
-            self.loadFinished.connect(self.on_page_load)
-            self.mainFrame().load(QUrl(url))
-            self.app.exec_()
-             
-        def on_page_load(self):
-            self.app.quit()
-        
-
-    url= 'http://oasth.gr/#el/stopinfo/screen/'+stopid+'/'
-    #print('url='+ url)
-    client_response = Client(url)
-    source=client_response.mainFrame().toHtml()
-    soup = bs.BeautifulSoup(source,'lxml')
+    from selenium import webdriver
 
 
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")  
+    driver = webdriver.Chrome(chrome_options=chrome_options) 
+    driver.get('http://oasth.gr/#el/stopinfo/screen/'+stopid+'/')
+    res = driver.execute_script("return document.documentElement.outerHTML")
+    driver.quit()
+    
+
+    soup = bs.BeautifulSoup(res,'lxml')
+
+    
     p_tag = soup.find("h2", text="Άφιξη Λεωφορείων στη στάση")
-    print("Σταση: ",stopid)
-    #if p_tag is None:    << den uparxei h stash check
-    if len(p_tag.find_next_siblings("ul")) == 0:
-        print("Δεν υπάρχουν διερχομενα λεωφορεία")
+    print("Σταση: ",stopid)  ##TODO: ADD STOP NAME HERE...
+    if p_tag is None:
+        print("Η Στάση δεν υπάρχει ή υπάρχει κάποιο πρόβλημα δικτύου")
     else:
-        for li in p_tag.find_next_siblings("ul")[0].find_all("li"):
-            print("Ερχονται τα παρακατω: ", li.text)
-
+        if len(p_tag.find_next_siblings("ul")) == 0:
+            print("Δεν υπάρχουν διερχόμενα λεωφορεία")
+        else:
+            list1=[]
+            print("Έρχονται τα παρακάτω: ")
+            for li in p_tag.find_next_siblings("ul")[0].find_all("li"):
+                #print(li.text)
+                list1.append(li.text)
+            list2=[]
+            for i in range(len(list1)):
+                list2.append(list1[i].replace("\n"," "))
+                #list3.append(list2[i].replace("άφιξη","  άφιξη"))##TODO: FIX THIS SO IT LOOKS BETTER...
+                #print("i=",i,"list=", end="")
+                print(list2[i])
